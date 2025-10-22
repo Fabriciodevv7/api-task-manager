@@ -1,28 +1,39 @@
-# API Task Manager
+# API Task Manager (Back-End)
 
-![Status](https://img.shields.io/badge/STATUS-CRUD%20COMPLETO-green)
+![Status](https://img.shields.io/badge/STATUS-COMPLETO-brightgreen)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
 ## 📝 Descrição
 
-Esta é uma API RESTful para um gerenciador de tarefas (To-Do List), construída com Node.js, Express e MongoDB. O objetivo é criar um serviço de back-end robusto, com funcionalidades CRUD completas e persistência de dados, pronto para ser consumido por qualquer interface front-end.
+Esta é uma API RESTful completa para um gerenciador de tarefas (To-Do List), construída com Node.js, Express e MongoDB. O projeto implementa um sistema de back-end robusto, seguro e multi-usuário, com persistência de dados e autenticação baseada em token (JWT).
+
+O foco deste projeto foi dominar os fundamentos do back-end, incluindo a criação de um CRUD completo, gerenciamento de banco de dados NoSQL e a implementação de um fluxo de segurança profissional com autenticação e autorização.
 
 ## ✨ Funcionalidades
 
-* ✅ **Listar todas as tarefas:** Retorna a lista completa de tarefas existentes.
-* ✅ **Adicionar uma nova tarefa:** Permite a criação de uma nova tarefa.
-* ✅ **Atualizar uma tarefa:** Atualiza uma tarefa existente pelo seu ID.
-* ✅ **Remover uma tarefa:** Exclui uma tarefa específica pelo seu ID.
+* **Autenticação de Usuários:**
+    * ✅ Registro de novos usuários com senha criptografada (bcrypt).
+    * ✅ Login de usuários com geração de JSON Web Token (JWT).
+* **Gerenciamento de Tarefas (CRUD Completo):**
+    * ✅ **Criar:** Usuários podem criar novas tarefas.
+    * ✅ **Ler:** Usuários podem listar **apenas as suas próprias** tarefas.
+    * ✅ **Atualizar:** Usuários podem atualizar **apenas as suas próprias** tarefas.
+    * ✅ **Deletar:** Usuários podem deletar **apenas as suas próprias** tarefas.
+* **Segurança e Autorização:**
+    * ✅ Rotas de tarefas protegidas por middleware que verifica o JWT.
+    * ✅ Lógica de autorização que garante que um usuário não possa acessar ou modificar dados de outro usuário.
 
 ## 🛠️ Tecnologias Utilizadas
 
-* **JavaScript:** Linguagem principal do projeto.
 * **Node.js:** Ambiente de execução do servidor.
-* **Express.js:** Framework para a construção da API, gerenciamento de rotas e requisições.
+* **Express.js:** Framework para a construção da API e gerenciamento de rotas.
 * **MongoDB (com Mongoose):** Banco de dados NoSQL para persistência de dados.
-* **Dotenv:** Para gerenciamento de variáveis de ambiente e segredos (como a string de conexão).
+* **JSON Web Token (JWT):** Para criação de tokens de acesso seguros.
+* **bcryptjs:** Para criptografia (hashing) de senhas.
+* **Dotenv:** Para gerenciamento de variáveis de ambiente.
 
 ## 🚀 Como Rodar o Projeto
 
@@ -42,10 +53,11 @@ Para rodar este projeto localmente, siga os passos abaixo:
     ```
 4.  **Configure suas variáveis de ambiente:**
     * Crie um arquivo `.env` na raiz do projeto.
-    * Adicione sua string de conexão do MongoDB Atlas:
-      ```
-      MONGO_URI=mongodb+srv://seu_usuario:sua_senha@seucluster...
-      ```
+    * Adicione suas chaves secretas:
+        ```
+        MONGO_URI=mongodb+srv://seu_usuario:sua_senha@seucluster...
+        JWT_SECRET=seu_segredo_longo_e_aleatorio_para_o_jwt
+        ```
 5.  **Inicie o servidor:**
     ```bash
     node servidor.js
@@ -54,59 +66,78 @@ Para rodar este projeto localmente, siga os passos abaixo:
 
 ## Endpoints da API
 
-A API possui os seguintes endpoints:
+A API é dividida em rotas de Autenticação e rotas de Tarefas.
 
 ---
 
-### Listar Tarefas
+### Autenticação
 
-* **Método:** `GET`
-* **Endpoint:** `/tarefas`
-* **Descrição:** Retorna um array com todas as tarefas cadastradas.
+#### Registrar Novo Usuário
+* **Método:** `POST`
+* **Endpoint:** `/registrar`
+* **Corpo da Requisição (Body):**
+    ```json
+    {
+      "email": "usuario@email.com",
+      "senha": "sua_senha_segura"
+    }
+    ```
+* **Resposta de Sucesso (201 Created):**
+    `"Usuário registrado com sucesso!"`
+
+#### Login de Usuário
+* **Método:** `POST`
+* **Endpoint:** `/login`
+* **Corpo da Requisição (Body):**
+    ```json
+    {
+      "email": "usuario@email.com",
+      "senha": "sua_senha_segura"
+    }
+    ```
 * **Resposta de Sucesso (200 OK):**
     ```json
-    [
-        {
-            "_id": "68f7e761c72cb7cb4c7a9d7e",
-            "descricao": "Minha primeira tarefa",
-            "concluida": false,
-            "__v": 0
-        }
-    ]
+    {
+      "token": "eyJ... (um token JWT longo)"
+    }
     ```
 
 ---
 
-### Adicionar Tarefa
+### Tarefas (Rotas Protegidas)
 
+**Observação:** Todas as rotas de tarefas exigem um Token JWT válido enviado no cabeçalho de autorização.
+`Authorization: Bearer [seu_token]`
+
+#### Listar Tarefas (do usuário logado)
+* **Método:** `GET`
+* **Endpoint:** `/tarefas`
+* **Resposta de Sucesso (200 OK):**
+    ```json
+    [
+        {
+            "_id": "...",
+            "descricao": "Minha primeira tarefa",
+            "concluida": false,
+            "dono": "id_do_usuario"
+        }
+    ]
+    ```
+
+#### Adicionar Tarefa
 * **Método:** `POST`
 * **Endpoint:** `/tarefas`
-* **Descrição:** Adiciona uma nova tarefa à lista.
 * **Corpo da Requisição (Body):**
     ```json
     {
       "descricao": "Nova tarefa a ser adicionada"
     }
     ```
-* **Resposta de Sucesso (201 Created):**
-    ```json
-    {
-      "descricao": "Nova tarefa a ser adicionada",
-      "concluida": false,
-      "_id": "68f7e762c72cb7cb4c7a9d80",
-      "__v": 0
-    }
-    ```
+* **Resposta de Sucesso (201 Created):** (Retorna a tarefa recém-criada)
 
----
-
-### Atualizar Tarefa
-
+#### Atualizar Tarefa
 * **Método:** `PUT`
 * **Endpoint:** `/tarefas/:id`
-* **Descrição:** Atualiza uma tarefa existente com base no seu `id`.
-* **Parâmetro de URL:**
-    * `id` (obrigatório): O `_id` da tarefa a ser atualizada.
 * **Corpo da Requisição (Body):**
     ```json
     {
@@ -114,47 +145,16 @@ A API possui os seguintes endpoints:
       "concluida": true
     }
     ```
-* **Resposta de Sucesso (200 OK):**
-    ```json
-    {
-      "_id": "68f7e762c72cb7cb4c7a9d80",
-      "descricao": "Descrição da tarefa atualizada",
-      "concluida": true,
-      "__v": 1
-    }
-    ```
-* **Resposta de Erro (404 Not Found):**
-    ```json
-    {
-      "message": "Tarefa não encontrada."
-    }
-    ```
+* **Resposta de Sucesso (200 OK):** (Retorna a tarefa atualizada)
 
----
-
-### Remover Tarefa
-
+#### Remover Tarefa
 * **Método:** `DELETE`
 * **Endpoint:** `/tarefas/:id`
-* **Descrição:** Remove uma tarefa com base no seu `id`.
-* **Parâmetro de URL:**
-    * `id` (obrigatório): O `_id` da tarefa a ser removida.
 * **Resposta de Sucesso (200 OK):**
     ```json
     {
       "message": "Tarefa deletada com sucesso!",
-      "tarefa": {
-          "_id": "68f7e762c72cb7cb4c7a9d80",
-          "descricao": "Descrição da tarefa atualizada",
-          "concluida": true,
-          "__v": 1
-      }
-    }
-    ```
-* **Resposta de Erro (404 Not Found):**
-    ```json
-    {
-      "message": "Tarefa não encontrada."
+      "tarefa": { ... (dados da tarefa deletada) }
     }
     ```
 ---

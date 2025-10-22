@@ -8,6 +8,11 @@ const taskSchema = new mongoose.Schema({
     concluida: {
         type: Boolean,
         default: false
+    },
+    dono: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
 });
 
